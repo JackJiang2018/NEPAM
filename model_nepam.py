@@ -222,7 +222,7 @@ class NepamAblation(NEPAM):
         return token_idx
 
     def SelectRef(self, x, group_size, token_pos):
-        x = x[:, :, token_pos[0] :: group_size[0], token_pos[1] :: group_size[1]]
+        x = x[:, :, :: group_size[0], :: group_size[1]]
         x = upsample2d(x, group_size)
         return x
 
@@ -285,7 +285,9 @@ class NepamAblation(NEPAM):
         with torch.no_grad():
             x_ref = self.SelectRef(x, self.group_size, self.token_pos)
             group_score = self.dist_func(x_ref, x).unsqueeze(1)
-            group_score = F.avg_pool2d(group_score, 2, 2).flatten(1)
+            group_score = F.avg_pool2d(
+                group_score, self.group_size, self.group_size
+            ).flatten(1)
             token_idx = self.SortIndex(group_score, self.merge_group_num)
         x, token_idx = self.merge_module(x, token_idx)
 
@@ -488,18 +490,19 @@ class PruneViT(VisionTransformer):
         return x
 
 
-def deit_small_patch16_224_keep1_man(pretrained=True, **kwargs):
+@register_model
+def deit_small_patch16_224_ablation(pretrained=True, **kwargs):
     model_args = dict(
         patch_size=16,
         embed_dim=384,
         depth=12,
         num_heads=6,
-        merge_method="keep1",
-        merge_group_num=39,
-        merge_group_size=(1, 2),
-        distance="manhattan",
-        token_pos=(0, 0),
-        score_gate=None,
+        merge_method=kwargs["merge_method"],
+        merge_group_num=kwargs["merge_group_num"],
+        merge_group_size=kwargs["merge_group_size"],
+        distance=kwargs["distance"],
+        token_pos=kwargs["token_pos"],
+        score_gate=kwargs["score_gate"] if "score_gate" in kwargs.keys() else None,
         embed_layer=PatchEmbedMerge,
     )
     model = build_model_with_cfg(
@@ -513,6 +516,6 @@ def deit_small_patch16_224_keep1_man(pretrained=True, **kwargs):
 
 
 if __name__ == "__main__":
-    model = deit_small_patch16_224_keep1_man()
+    model = deit_small_patch16_224_ablation()
     inp = torch.randn(3, 3, 224, 224)
     out = model(inp)
