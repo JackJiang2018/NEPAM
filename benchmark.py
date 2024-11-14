@@ -469,17 +469,6 @@ class BenchmarkRunner:
             pretrained=True,
             **kwargs.pop("model_kwargs", {}),
         )
-        # self.model = inference_ltmp_deit_small_patch16_224(False)
-        # self.model = vit_base_patch16_224(False)
-        # self.model = STMViT_base_patch16_224(False)
-        # self.model = STMViT_base_patch8_224(False)
-        # self.model = vit_base_patch8_224(False)
-        # vit_small_patch16_224()
-        # print(self.model)
-        # tome.patch.timm(self.model)
-        # apply_patch(self.model)
-        # self.model.r = 2
-        # print(self.model)
         self.model.to(
             device=self.device,
             dtype=self.model_dtype,

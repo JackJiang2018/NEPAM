@@ -42,15 +42,6 @@ from timm.utils import (
 )
 import model_nepam
 
-# import tome
-# from model.STM import (
-#     STMViT_small_patch16_224,
-#     STMViT_base_patch16_224,
-#     STMViT_base_patch8_224,
-#     STMDeit_small_patch16_224,
-# )
-# from model.model_ape import vit_small_patch16_224
-
 try:
     from apex import amp
 

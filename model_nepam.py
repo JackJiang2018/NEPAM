@@ -203,7 +203,8 @@ class NepamAblation(NEPAM):
         return dist
 
     def CosSim(self, in1, in2):
-        sim = F.cosine_similarity(in1, in2, 1)
+        # turn similarity into distance
+        sim = -F.cosine_similarity(in1, in2, 1)
         return sim
 
     def SortIndex(self, score, merge_groups):
@@ -236,7 +237,7 @@ class NepamAblation(NEPAM):
             [
                 torch.gather(
                     self.token_idx2[
-                        self.token_pos[0] * self.group_size[0] + self.token_pos[1]
+                        self.token_pos[1] * self.group_size[0] + self.token_pos[0]
                     ]
                     .unsqueeze(0)
                     .expand(B, -1),
@@ -515,7 +516,35 @@ def deit_small_patch16_224_ablation(pretrained=True, **kwargs):
     return model
 
 
+@register_model
+def vit_base_patch16_384_ablation(pretrained=True, **kwargs):
+    model_args = dict(
+        patch_size=16,
+        embed_dim=768,
+        depth=12,
+        num_heads=12,
+        merge_method=kwargs["merge_method"],
+        merge_group_num=kwargs["merge_group_num"],
+        merge_group_size=kwargs["merge_group_size"],
+        distance=kwargs["distance"],
+        token_pos=kwargs["token_pos"],
+        score_gate=kwargs["score_gate"] if "score_gate" in kwargs.keys() else None,
+        embed_layer=PatchEmbedMerge,
+    )
+    model = build_model_with_cfg(
+        PruneViT,
+        "vit_base_patch16_384",
+        pretrained,
+        pretrained_strict=False,
+        **model_args,
+    )
+    return model
+
+
 if __name__ == "__main__":
-    model = deit_small_patch16_224_ablation()
-    inp = torch.randn(3, 3, 224, 224)
-    out = model(inp)
+    # model = deit_small_patch16_224_ablation()
+    # inp = torch.randn(3, 3, 224, 224)
+    # out = model(inp)
+    inp = torch.randn(4, 768, 14, 14)
+    inp2 = torch.randn(4, 768, 14, 14)
+    sim = F.cosine_similarity(inp, inp, 1)
